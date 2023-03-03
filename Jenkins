@@ -2,10 +2,7 @@ pipeline {
   agent any
 
   stages {
-    stage('Clone source code') {
-      steps {
-        git 'https://github.com/<username>/<repository>.git'
-      }
+    stage('Clone source code') 
     }
 
     stage('Provision infrastructure with Terraform') {
