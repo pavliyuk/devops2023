@@ -1,35 +1,31 @@
 pipeline {
-  agent any
+    agent any
 
-      stage('Provision infrastructure with Terraform') {
-      steps {
-        sh 'terraform init'
-        sh 'terraform apply -auto-approve'
-      }
-    }
+    stages {
+        stage('Clone Git repository') {
+            steps {
+                git url: 'https://github.com/user/repo.git', branch: 'master'
+            }
+        }
 
-    stage('Configure WordPress with Ansible') {
-      steps {
-        ansiblePlaybook(
-          playbook: '/path/to/playbook.yml',
-          inventory: 'hosts.ini'
-        )
-      }
-    }
+        stage('Terraform Deployment') {
+            steps {
+                sh 'terraform init'
+                sh 'terraform apply -auto-approve'
+            }
+        }
 
-    stage('Send notification to Telegram') {
-      steps {
-        telegramSend(
-          message: 'WordPress has been deployed successfully!',
-          tokenCredentialId: '<telegram_token_credential_id>',
-          chatId: '<telegram_chat_id>'
-        )
-      }
-    }
-}
+        stage('Ansible Deployment') {
+            steps {
+                git url: 'https://github.com/user/ansible-repo.git', branch: 'master'
+                sh 'ansible-playbook site.yml'
+            }
+        }
 
-  post {
-    always {
-      sh 'terraform destroy -auto-approve'
+        stage('Notify Telegram') {
+            steps {
+                sh 'curl -X POST https://api.telegram.org/bot<token>/sendMessage -d chat_id=<chat_id> -d text="Wordpress deployment has completed"'
+            }
+        }
     }
 }
