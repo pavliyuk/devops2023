@@ -1,8 +1,8 @@
 provider "aws" {
     region = "us-east-1"  
 environment {
-        AWS_ACCESS_KEY_ID = 'AWS_ACCESS_KEY_ID'
-        AWS_SECRET_ACCESS_KEY = 'AWS_SECRET_ACCESS_KEY'
+        AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID"
+        AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY"
     }
 
 resource "aws_instance" "foo" {
