@@ -1,11 +1,7 @@
 pipeline {
   agent any
 
-  stages {
-    stage('Clone source code') 
-    }
-
-    stage('Provision infrastructure with Terraform') {
+      stage('Provision infrastructure with Terraform') {
       steps {
         sh 'terraform init'
         sh 'terraform apply -auto-approve'
@@ -30,11 +26,10 @@ pipeline {
         )
       }
     }
-  }
+}
 
   post {
     always {
       sh 'terraform destroy -auto-approve'
     }
-  }
 }
