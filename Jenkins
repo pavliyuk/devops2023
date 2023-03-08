@@ -1,54 +1,46 @@
 pipeline {
-
-    parameters {
-        booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run apply after generating plan?')
-    } 
-    environment {
+    agent any
+ 
+ environment {
         AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
         AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
     }
-
-   agent  any
+ 
+    parameters {
+        booleanParam(name: 'destroy', defaultValue: false, description: 'Do you want to destroy the infrastructure?')
+    }
+//Terraform Init
     stages {
-        stage('checkout') {
+        stage('Terraform Init') {
             steps {
-                 script{
-                        dir("terraform")
-                        {
-                            git "https://github.com/pavliyuk/devops2023/main.tf"
-                        }
-                    }
-                }
-            }
-
-        stage('Plan') {
-            steps {
-                sh 'pwd;cd terraform/ ; terraform init'
-                sh "pwd;cd terraform/ ; terraform plan -out tfplan"
-                sh 'pwd;cd terraform/ ; terraform show -no-color tfplan > tfplan.txt'
+                sh 'terraform init'
             }
         }
-        stage('Approval') {
-           when {
-               not {
-                   equals expected: true, actual: params.autoApprove
-               }
-           }
-
-           steps {
-               script {
-                    def plan = readFile 'terraform/tfplan.txt'
-                    input message: "Do you want to apply the plan?",
-                    parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
-               }
-           }
-       }
-
-        stage('Apply') {
+//Stage 2 Terraform Apply        
+        stage('Terraform Apply') {
             steps {
-                sh "pwd;cd terraform/ ; terraform apply -input=false tfplan"
+                sh 'terraform apply -auto-approve'
+            }
+        }
+//Telegram send masage
+stage('Telegram Send sucess') {
+    steps {
+        sh 'curl -i -X GET "https://api.telegram.org/bot5640764624:AAE5ORVTkOQq3Xg8ZVx8gL9_U-j_aw0KQdw/sendMessage?chat_id=-834878416&text=Build AWS success"'
+    }
+}
+//Terraform Destroy
+        stage('Terraform Destroy') {
+            when {
+                expression { params.destroy }
+            }
+            steps {
+                sh 'terraform destroy -auto-approve'
+            }
+        }
+        stage('Telegram send Destroy') {
+            steps {
+                sh 'curl -i -X GET "https://api.telegram.org/bot5640764624:AAE5ORVTkOQq3Xg8ZVx8gL9_U-j_aw0KQdw/sendMessage?chat_id=-834878416&text=All resourcess AWS DESTROY"'
             }
         }
     }
-
-  }
+}
